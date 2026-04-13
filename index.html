@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>המגילה האבודה - גרסת המשימה</title>
+    <style>
+        :root {
+            --israel-blue: #0038b8;
+            --israel-white: #ffffff;
+            --accent-gold: #d4af37;
+            --bg-gray: #f4f7f6;
+            --error-red: #d9534f;
+            --success-green: #5cb85c;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg-gray);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            background: var(--israel-white);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-top: 8px solid var(--israel-blue);
+            text-align: center;
+        }
+
+        .hidden { display: none !important; }
+        #timer { font-size: 24px; font-weight: bold; color: var(--error-red); margin: 15px 0; }
+        
+        button {
+            background-color: var(--israel-blue);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 80%;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .hint-box {
+            background: #eef2ff;
+            padding: 15px;
+            border-right: 5px solid var(--israel-blue);
+            margin: 20px 0;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .code-block {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 5px;
+            direction: ltr;
+            text-align: left;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="screen-start">
+            <h1>המגילה האבודה</h1>
+            <p>הטקס מתחיל בקרוב! עזרו לנו למצוא את המגילה לפני שיהיה מאוחר מדי.</p>
+            <button onclick="startGame()">התחל במשימה</button>
+        </div>
+
+        <div id="screen-game" class="hidden">
+            <div id="timer">15:00</div>
+            
+            <div id="puzzle-1">
+                <h3>שלב 1: צופן מורס</h3>
+                <p>פצחו את המשפט הבא:</p>
+                <p style="letter-spacing: 5px; font-weight: bold;">.. -- / - .-. --- .. --- / .- .. -. / --.. --- / .- --. -.. .-</p>
+                <input type="text" id="input-1" placeholder="הקלידו את המשפט...">
+                <button onclick="checkPuzzle1()">בדיקה</button>
+            </div>
+
+            <div id="puzzle-2" class="hidden">
+                <h3>שלב 2: הקוד הגיאוגרפי</h3>
+                <p>כדי לפתוח את השלב הבא, עליכם לזהות את <b>העיר</b> שבה הוכרזה המדינה ב-1948.</p>
+                <div class="hint-box">
+                    <strong>רמז:</strong> זוהי עיר החוף שבה נמצא "בית דיזנגוף", שם הקריא בן גוריון את המגילה (לא ירושלים!).
+                </div>
+                <input type="text" id="input-2" placeholder="שם העיר...">
+                <button onclick="checkPuzzle2()">המשך</button>
+            </div>
+
+            <div id="puzzle-3" class="hidden">
+                <h3>שלב 3: לוגיקת הדגל</h3>
+                <div class="code-block">let flagColors = ["אדום", "כחול", "לבן", "ירוק"];</div>
+                <p>מהם האינדקסים (0-based) של כחול ולבן? (למשל: 0,1)</p>
+                <input type="text" id="input-3" placeholder="מספרים עם פסיק...">
+                <button onclick="checkPuzzle3()">פתח כספת</button>
+            </div>
+
+            <div id="feedback" style="margin-top:15px; font-weight:bold;"></div>
+        </div>
+
+        <div id="screen-win" class="hidden">
+            <h1 style="color: var(--success-green);">ניצחתם!</h1>
+            <p>המגילה בידינו. יום עצמאות שמח!</p>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 900;
+        let timerInterval;
+
+        function startGame() {
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            let min = Math.floor(timeLeft/60);
+            let sec = timeLeft%60;
+            document.getElementById('timer').innerText = `${min}:${sec < 10 ? '0' + sec : sec}`;
+            if(timeLeft <= 0) endGame(false);
+        }
+
+        function showFeedback(msg, isCorrect) {
+            const f = document.getElementById('feedback');
+            f.innerText = msg;
+            f.style.color = isCorrect ? 'green' : 'red';
+        }
+
+        function checkPuzzle1() {
+            if(document.getElementById('input-1').value.trim() === "אם תרצו אין זו אגדה") {
+                next(1, 2);
+            } else showFeedback("נסו שוב...", false);
+        }
+
+        // NEW LOGIC FOR PUZZLE 2
+        function checkPuzzle2() {
+            const val = document.getElementById('input-2').value.trim();
+            if(val === "תל אביב" || val === "תל-אביב") {
+                next(2, 3);
+            } else showFeedback("לא מדויק, חשבו על עיר החוף", false);
+        }
+
+        function checkPuzzle3() {
+            const val = document.getElementById('input-3').value.replace(/\s/g, '');
+            if(val === "1,2" || val === "2,1") {
+                endGame(true);
+            } else showFeedback("טעות באינדקסים", false);
+        }
+
+        function next(curr, nextNum) {
+            showFeedback("נכון!", true);
+            setTimeout(() => {
+                document.getElementById(`puzzle-${curr}`).classList.add('hidden');
+                document.getElementById(`puzzle-${nextNum}`).classList.remove('hidden');
+                document.getElementById('feedback').innerText = "";
+            }, 1000);
+        }
+
+        function endGame(win) {
+            clearInterval(timerInterval);
+            document.getElementById('screen-game').classList.add('hidden');
+            if(win) document.getElementById('screen-win').classList.remove('hidden');
+            else alert("הזמן נגמר!");
+        }
+    </script>
+</body>
+</html>
