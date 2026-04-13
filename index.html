@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>המגילה האבודה - גרסת המשימה</title>
+    <title>המגילה האבודה - חדר בריחה דיגיטלי</title>
     <style>
+        /* CSS Variables for National Theme */
         :root {
             --israel-blue: #0038b8;
             --israel-white: #ffffff;
@@ -14,7 +15,10 @@
             --success-green: #5cb85c;
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
         body {
             background-color: var(--bg-gray);
@@ -23,6 +27,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: #333;
         }
 
         #game-container {
@@ -34,6 +39,264 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border-top: 8px solid var(--israel-blue);
             text-align: center;
+        }
+
+        /* UI Elements */
+        .hidden { display: none !important; }
+
+        h1 { color: var(--israel-blue); margin-bottom: 10px; }
+        
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--error-red);
+            margin: 15px 0;
+            padding: 10px;
+            border: 2px solid var(--error-red);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .puzzle-card {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        button {
+            background-color: var(--israel-blue);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        button:hover { background-color: #002a8a; }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px;
+            font-size: 18px;
+            width: 80%;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .hint-box {
+            background: #eef2ff;
+            padding: 15px;
+            border-right: 5px solid var(--israel-blue);
+            margin: 20px 0;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .morse-chart {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .code-block {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 5px;
+            direction: ltr;
+            text-align: left;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        .feedback { margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="screen-start">
+            <h1>המגילה האבודה</h1>
+            <p>שלום ארכיבאי. טקס הכרזת המדינה מתחיל בעוד 15 דקות, אבל המגילה המקורית נעולה בכספת והקוד אבד!</p>
+            <p>עליך לפתור שלושה אתגרים כדי לחשוף את הקוד ולהציל את הטקס.</p>
+            <button onclick="startGame()">התחל במשימה</button>
+        </div>
+
+        <div id="screen-game" class="hidden">
+            <div id="timer">15:00</div>
+            
+            <div id="puzzle-1" class="puzzle-card">
+                <h3>שלב 1: צופן מורס היסטורי</h3>
+                <p>הודעה מוצפנת הגיעה מהמטה. תרגמו את המשפט המפורסם של הרצל:</p>
+                <p style="letter-spacing: 5px; font-size: 20px; font-weight: bold;">
+                    .. -- / - .-. --- .. --- / .- .. -. / --.. --- / .- --. -.. .-
+                </p>
+                <div class="hint-box">
+                    <strong>מקרא מורס (עברית):</strong>
+                    <div class="morse-chart">
+                        <span>א: .-</span> <span>ב: -...</span> <span>ג: --.</span>
+                        <span>ד: -..</span> <span>ה: ....</span> <span>ו: .</span>
+                        <span>ז: --..</span> <span>ח: ....</span> <span>ט: ..-</span>
+                        <span>י: ..</span> <span>כ: -.-</span> <span>ל: .-..</span>
+                        <span>מ: --</span> <span>נ: -.</span> <span>ס: ---</span>
+                        <span>ע: .--.</span> <span>פ: .--.</span> <span>צ: ---.</span>
+                        <span>ק: --.-</span> <span>ר: .-.</span> <span>ש: ...</span>
+                        <span>ת: -</span>
+                    </div>
+                </div>
+                <input type="text" id="input-1" placeholder="הקלידו את המשפט כאן...">
+                <button onclick="checkPuzzle1()">בדיקה</button>
+            </div>
+
+            <div id="puzzle-2" class="puzzle-card hidden">
+                <h3>שלב 2: הקוד הגיאוגרפי</h3>
+                <p>כדי לפתוח את השלב הבא, עליכם לזהות את <b>העיר</b> שבה הוכרזה המדינה ב-1948.</p>
+                <div class="hint-box">
+                    <strong>רמז:</strong> זוהי עיר החוף שבה נמצא "בית דיזנגוף", שם הקריא בן גוריון את המגילה 
+                </div>
+               <button onclick="checkPuzzle2()">המשך</button>
+            </div>
+
+            <div id="puzzle-3" class="puzzle-card hidden">
+                <h3>שלב 3: לוגיקת הדגל</h3>
+                <p>כדי לסובב את המפתח האחרון, עלינו לבחור את צבעי הלאום מתוך המערך (Array) הבא:</p>
+                <div class="code-block">
+                    let flagColors = ["אדום", "כחול", "לבן", "ירוק"];
+                </div>
+                <p>מהם האינדקסים (Indices) של הצבעים <strong>כחול</strong> ו-<strong>לבן</strong>? (הפרידו בפסיק)</p>
+                <div class="hint-box">
+                    <strong>טיפ למתכנתים:</strong> במערכים, הספירה מתחילה ב-0.
+                </div>
+                <input type="text" id="input-3" placeholder="למשל: 0,3">
+                <button onclick="checkPuzzle3()">פתח את הכספת</button>
+            </div>
+
+            <div id="feedback" class="feedback"></div>
+        </div>
+
+        <div id="screen-win" class="hidden">
+            <h1 style="color: var(--success-green);">כל הכבוד!</h1>
+            <p>מצאת את המגילה! דוד בן גוריון יכול להתחיל בטקס בזמן.</p>
+            <h2 style="color: var(--israel-blue);">יום עצמאות שמח!</h2>
+            <button onclick="location.reload()">שחק שוב</button>
+        </div>
+
+        <div id="screen-lose" class="hidden">
+            <h1 style="color: var(--error-red);">הזמן נגמר...</h1>
+            <p>המגילה נשארה נעולה והטקס נדחה. אל תתייאשו, נסו שוב!</p>
+            <button onclick="location.reload()">ניסיון נוסף</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Logic State
+        let timeLeft = 15 * 60; // 15 minutes in seconds
+        let timerInterval;
+
+        // UI References
+        const screens = {
+            start: document.getElementById('screen-start'),
+            game: document.getElementById('screen-game'),
+            win: document.getElementById('screen-win'),
+            lose: document.getElementById('screen-lose')
+        };
+
+        const puzzles = [
+            document.getElementById('puzzle-1'),
+            document.getElementById('puzzle-2'),
+            document.getElementById('puzzle-3')
+        ];
+
+        function startGame() {
+            screens.start.classList.add('hidden');
+            screens.game.classList.remove('hidden');
+            startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function showFeedback(text, isCorrect) {
+            const fb = document.getElementById('feedback');
+            fb.innerText = text;
+            fb.style.color = isCorrect ? 'var(--success-green)' : 'var(--error-red)';
+        }
+
+        // Puzzle Validations
+        function checkPuzzle1() {
+            const val = document.getElementById('input-1').value.trim();
+            // Phrase: "אם תרצו אין זו אגדה"
+            if (val === "אם תרצו אין זו אגדה") {
+                nextPuzzle(1);
+            } else {
+                showFeedback("טעות בצופן, נסו שוב", false);
+            }
+        }
+
+        function checkPuzzle2() {
+            const val = document.getElementById('input-2').value.trim();
+            // Binary 10111 = 16 + 4 + 2 + 1 = 23 (Referring to May 14 1948 being 5th Iyar, but task asks specifically for 10111)
+            if (val === "23") {
+                nextPuzzle(2);
+            } else {
+                showFeedback("המספר אינו נכון", false);
+            }
+        }
+
+        function checkPuzzle3() {
+            const val = document.getElementById('input-3').value.replace(/\s+/g, '');
+            // Array indices: Blue is 1, White is 2
+            if (val === "1,2" || val === "2,1") {
+                endGame(true);
+            } else {
+                showFeedback("האינדקסים לא מדויקים", false);
+            }
+        }
+
+        function nextPuzzle(currentNum) {
+            showFeedback("נכון מאוד!", true);
+            setTimeout(() => {
+                puzzles[currentNum - 1].classList.add('hidden');
+                puzzles[currentNum].classList.remove('hidden');
+                document.getElementById('feedback').innerText = "";
+            }, 1000);
+        }
+
+        function endGame(isWin) {
+            clearInterval(timerInterval);
+            screens.game.classList.add('hidden');
+            if (isWin) {
+                screens.win.classList.remove('hidden');
+            } else {
+                screens.lose.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
         }
 
         .hidden { display: none !important; }
