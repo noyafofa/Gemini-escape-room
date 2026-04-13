@@ -281,4 +281,104 @@
       <p style="font-size:17px; margin-top:12px;">עליך לפתור <strong style="color:var(--accent);">שלושה חידות</strong> כדי לפתוח את הכספת ולמצוא את המסמך — לפני שייגמר הזמן.</p>
       <p style="font-size:15px; margin-top:16px; color:rgba(232,220,200,0.5);">⏱ יש לך 15 דקות בלבד.</p>
      </div><button class="btn-primary" id="btnStart" onclick="startGame()" style="font-size:20px; padding:16px 48px;"> 🔓 התחל משימה </button>2
-     
+     div>
+            
+            <div id="puzzle-1">
+                <h3>שלב 1: צופן מורס</h3>
+                <p>פצחו את המשפט הבא:</p>
+                <p style="letter-spacing: 5px; font-weight: bold;">.. -- / - .-. --- .. --- / .- .. -. / --.. --- / .- --. -.. .-</p>
+                <input type="text" id="input-1" placeholder="הקלידו את המשפט...">
+                <button onclick="checkPuzzle1()">בדיקה</button>
+            </div>
+
+            <div id="puzzle-2" class="hidden">
+                <h3>שלב 2: הקוד הגיאוגרפי</h3>
+                <p>כדי לפתוח את השלב הבא, עליכם לזהות את <b>העיר</b> שבה הוכרזה המדינה ב-1948.</p>
+                <div class="hint-box">
+                    <strong>רמז:</strong> זוהי עיר החוף שבה נמצא "בית דיזנגוף", שם הקריא בן גוריון את המגילה (לא ירושלים!).
+                </div>
+                <input type="text" id="input-2" placeholder="שם העיר...">
+                <button onclick="checkPuzzle2()">המשך</button>
+            </div>
+
+            <div id="puzzle-3" class="hidden">
+                <h3>שלב 3: לוגיקת הדגל</h3>
+                <div class="code-block">let flagColors = ["אדום", "כחול", "לבן", "ירוק"];</div>
+                <p>מהם האינדקסים (0-based) של כחול ולבן? (למשל: 0,1)</p>
+                <input type="text" id="input-3" placeholder="מספרים עם פסיק...">
+                <button onclick="checkPuzzle3()">פתח כספת</button>
+            </div>
+
+            <div id="feedback" style="margin-top:15px; font-weight:bold;"></div>
+        </div>
+
+        <div id="screen-win" class="hidden">
+            <h1 style="color: var(--success-green);">ניצחתם!</h1>
+            <p>המגילה בידינו. יום עצמאות שמח!</p>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 900;
+        let timerInterval;
+
+        function startGame() {
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            let min = Math.floor(timeLeft/60);
+            let sec = timeLeft%60;
+            document.getElementById('timer').innerText = `${min}:${sec < 10 ? '0' + sec : sec}`;
+            if(timeLeft <= 0) endGame(false);
+        }
+
+        function showFeedback(msg, isCorrect) {
+            const f = document.getElementById('feedback');
+            f.innerText = msg;
+            f.style.color = isCorrect ? 'green' : 'red';
+        }
+
+        function checkPuzzle1() {
+            if(document.getElementById('input-1').value.trim() === "אם תרצו אין זו אגדה") {
+                next(1, 2);
+            } else showFeedback("נסו שוב...", false);
+        }
+
+        // NEW LOGIC FOR PUZZLE 2
+        function checkPuzzle2() {
+            const val = document.getElementById('input-2').value.trim();
+            if(val === "תל אביב" || val === "תל-אביב") {
+                next(2, 3);
+            } else showFeedback("לא מדויק, חשבו על עיר החוף", false);
+        }
+
+        function checkPuzzle3() {
+            const val = document.getElementById('input-3').value.replace(/\s/g, '');
+            if(val === "1,2" || val === "2,1") {
+                endGame(true);
+            } else showFeedback("טעות באינדקסים", false);
+        }
+
+        function next(curr, nextNum) {
+            showFeedback("נכון!", true);
+            setTimeout(() => {
+                document.getElementById(`puzzle-${curr}`).classList.add('hidden');
+                document.getElementById(`puzzle-${nextNum}`).classList.remove('hidden');
+                document.getElementById('feedback').innerText = "";
+            }, 1000);
+        }
+
+        function endGame(win) {
+            clearInterval(timerInterval);
+            document.getElementById('screen-game').classList.add('hidden');
+            if(win) document.getElementById('screen-win').classList.remove('hidden');
+            else alert("הזמן נגמר!");
+        }
+    </script>
+</body>
+</html>
+
